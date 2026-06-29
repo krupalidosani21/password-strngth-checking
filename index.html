@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Password Strength Checker</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial, Helvetica, sans-serif;
+}
+
+body{
+    background:linear-gradient(135deg,#4facfe,#00f2fe);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    min-height:100vh;
+}
+
+.container{
+    width:450px;
+    background:white;
+    padding:30px;
+    border-radius:15px;
+    box-shadow:0 10px 25px rgba(0,0,0,0.2);
+}
+
+h1{
+    text-align:center;
+    margin-bottom:20px;
+    color:#333;
+}
+
+input{
+    width:100%;
+    padding:12px;
+    font-size:16px;
+    border:2px solid #ccc;
+    border-radius:8px;
+    outline:none;
+    margin-bottom:15px;
+}
+
+input:focus{
+    border-color:#4facfe;
+}
+
+button{
+    width:100%;
+    padding:12px;
+    margin-top:10px;
+    font-size:16px;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+    background:#007BFF;
+    color:white;
+    transition:0.3s;
+}
+
+button:hover{
+    background:#0056b3;
+}
+
+#result{
+    margin-top:20px;
+}
+
+.good{
+    color:green;
+    margin:5px 0;
+}
+
+.bad{
+    color:red;
+    margin:5px 0;
+}
+
+.warning{
+    color:orange;
+    margin:5px 0;
+}
+
+meter{
+    width:100%;
+    height:25px;
+    margin-top:10px;
+}
+
+ul{
+    margin-left:20px;
+    margin-top:10px;
+}
+
+.generated{
+    margin-top:15px;
+    padding:10px;
+    background:#f3f3f3;
+    border-radius:5px;
+    font-weight:bold;
+    text-align:center;
+    color:#333;
+}
+</style>
+
+</head>
+<body>
+
+<div class="container">
+
+<h1>Password Strength Checker</h1>
+
+<input
+type="password"
+id="password"
+placeholder="Enter your password">
+
+<button onclick="checkPassword()">
+Check Password
+</button>
+
+<button onclick="generatePassword()">
+Generate Strong Password
+</button>
+
+<div id="result"></div>
+
+</div>
+
+<script>
+
+const commonPasswords = [
+"password",
+"123456",
+"123456789",
+"qwerty",
+"abc123",
+"admin",
+"welcome",
+"letmein"
+];
+
+// Generate Password
+function randomPassword(length = 12){
+
+    const chars =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
+
+    let password = "";
+
+    for(let i=0;i<length;i++){
+        password += chars.charAt(
+        Math.floor(Math.random()*chars.length)
+        );
+    }
+
+    return password;
+}
+
+function generatePassword(){
+
+    document.getElementById("password").value =
+    randomPassword();
+
+    checkPassword();
+
+}
+
+// Password Checker
+function checkPassword(){
+
+    const password =
+    document.getElementById("password").value;
+
+    let score = 0;
+    let suggestions = [];
+
+    let output = "<h2>Password Analysis</h2>";
+
+    // Common Password
+    if(commonPasswords.includes(password.toLowerCase())){
+        output += "<p class='bad'>❌ Common password detected</p>";
+        suggestions.push("Choose a unique password.");
+    }
+    else{
+        output += "<p class='good'>✅ Unique password</p>";
+        score += 20;
+    }
+
+    // Length
+    if(password.length >= 8){
+        output += "<p class='good'>✅ Good Length (8+ characters)</p>";
+        score += 20;
+    }
+    else{
+        output += "<p class='bad'>❌ Password must contain at least 8 characters</p>";
+        suggestions.push("Increase password length.");
+    }
+
+    // Uppercase
+    if(/[A-Z]/.test(password)){
+        output += "<p class='good'>✅ Contains Uppercase Letter</p>";
+        score += 15;
+    }
+    else{
+        output += "<p class='bad'>❌ Missing Uppercase Letter</p>";
+        suggestions.push("Add uppercase letters.");
+    }
+
+    // Lowercase
+    if(/[a-z]/.test(password)){
+        output += "<p class='good'>✅ Contains Lowercase Letter</p>";
+        score += 15;
+    }
+    else{
+        output += "<p class='bad'>❌ Missing Lowercase Letter</p>";
+        suggestions.push("Add lowercase letters.");
+    }
+
+    // Numbers
+    if(/[0-9]/.test(password)){
+        output += "<p class='good'>✅ Contains Number</p>";
+        score += 15;
+    }
+    else{
+        output += "<p class='bad'>❌ Missing Number</p>";
+        suggestions.push("Add numbers.");
+    }
+
+    // Special Character
+    if(/[!@#$%^&*(),.?":{}|<>]/.test(password)){
+        output += "<p class='good'>✅ Contains Special Character</p>";
+        score += 15;
+    }
+    else{
+        output += "<p class='bad'>❌ Missing Special Character</p>";
+        suggestions.push("Add special characters.");
+    }
+
+    // Repeated Characters
+    if(/(.)\1\1/.test(password)){
+        output += "<p class='warning'>⚠ Repeated Characters Detected</p>";
+        score -= 10;
+        suggestions.push("Avoid repeated characters.");
+    }
+
+    // Sequential Characters
+    if(password.includes("1234") ||
+       password.toLowerCase().includes("abcd")){
+        output += "<p class='warning'>⚠ Sequential Pattern Detected</p>";
+        score -= 10;
+        suggestions.push("Avoid predictable sequences.");
+    }
+
+    score = Math.max(score,0);
+
+    let strength = "";
+    let color = "";
+
+    if(score < 40){
+        strength = "Weak 🔴";
+        color = "red";
+    }
+    else if(score < 70){
+        strength = "Medium 🟡";
+        color = "orange";
+    }
+    else{
+        strength = "Strong 🟢";
+        color = "green";
+    }
+
+    output += `<br><h3 style="color:${color};">Strength : ${strength}</h3>`;
+    output += `<h3>Score : ${score}/100</h3>`;
+
+    output += `
+    <meter
+    min="0"
+    max="100"
+    value="${score}">
+    </meter>
+    `;
+
+    if(suggestions.length > 0){
+
+        output += "<h3 style='margin-top:15px;'>Suggestions</h3>";
+        output += "<ul>";
+
+        suggestions.forEach(function(item){
+            output += `<li>${item}</li>`;
+        });
+
+        output += "</ul>";
+
+    }
+
+    if(score < 70){
+
+        output += `
+        <div class="generated">
+        Suggested Strong Password:<br><br>
+        ${randomPassword()}
+        </div>
+        `;
+
+    }
+
+    document.getElementById("result").innerHTML = output;
+
+}
+
+</script>
+
+</body>
+</html>
